@@ -1,0 +1,16 @@
+# Frontend only. The Python backend runs on Render (render.yaml); see NETLIFY.md.
+[build]
+  # No package.json at the repo root, so Netlify skips its own install step
+  # and the script controls the install.
+  base = "/"
+  command = "bash frontend/scripts/netlify-build.sh"
+  publish = "frontend/build"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Single-page app: let React Router handle /runs, /references, etc.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
