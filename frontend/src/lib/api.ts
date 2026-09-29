@@ -1,5 +1,6 @@
+// An empty value means the API is served from the same origin (self-hosted behind nginx).
 export const BASE = process.env.REACT_APP_BACKEND_URL;
-if (!BASE) throw new Error('REACT_APP_BACKEND_URL is required');
+if (BASE === undefined) throw new Error('REACT_APP_BACKEND_URL is required');
 export const artifactUrl = (path: string) => path.startsWith('/api/') ? `${BASE}${path}` : path;
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const multipart = body instanceof FormData;

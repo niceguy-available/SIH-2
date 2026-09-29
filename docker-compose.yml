@@ -1,0 +1,41 @@
+# Self-hosted Moon Match Points: `docker compose up -d --build`, then open http://<host>:8080
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on: [mongo]
+    environment:
+      APP_MODE: single_operator
+      MONGO_URL: mongodb://mongo:27017
+      DB_NAME: moon_match_points
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      DATA_ROOT: /data
+      STORAGE_BACKEND: local
+      MAX_UPLOAD_MB: "256"
+      MAX_RASTER_PIXELS: "150000000"
+      MAX_DECODED_MB: "1024"
+      MAX_ANALYSIS_DIMENSION: "2048"
+      MAX_JOB_SECONDS: "300"
+      MAX_ACTIVE_JOBS: "2"
+      MAX_QUEUED_JOBS: "4"
+      MAX_LOCAL_CACHE_MB: "20000"
+      BASELINE_COMMIT: self-hosted
+    volumes:
+      - app-data:/data
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on: [backend]
+    ports:
+      - "${PORT:-8080}:80"
+
+volumes:
+  mongo-data:
+  app-data:
