@@ -31,12 +31,16 @@ This app IS that project (hardened). Website/design parity confirmed — no visu
 
 ## Implemented (2026-06)
 - **Automatic coordinate-matched LROC reference retrieval + persistent cache** (DONE, tested 100%).
-  - `POST /api/catalog/auto-reference?latitude&longitude&prefer_cache` — matches local curated
-    footprint DB (`match_footprints`), reuses persistent cache first (`from_cache=true`, no LROC
-    request), else fetches from allowlisted LROC URL, stores to object storage, tags `product_id`.
-    Honest 422 (bad coords) / 404 (no match) / 503 (all fetches fail, no substitution).
-  - Frontend "Auto-match from LROC" block in reference panel (lat/long → Auto-fetch → select +
-    cache/fresh status + toast). Workflow: LROC → auto fetch → local cache/DB → reuse across sessions.
+  - `POST /api/catalog/auto-reference?latitude&longitude&prefer_cache` — coordinates OPTIONAL.
+    With coords: matches local curated footprint DB (`match_footprints`). Without coords:
+    `default_matches` picks the best-coverage product (global mosaic). Reuses persistent cache
+    first (`from_cache=true`, no LROC request), else fetches from allowlisted LROC URL, stores to
+    object storage, tags `product_id`. Honest 422 (partial/bad coords) / 404 (no match) / 503 (all fail).
+  - Frontend "Auto-match from LROC" block (optional lat/long). A best-match reference is
+    AUTO-FETCHED on source upload when none is selected (Home.tsx handleFile → autoReference()).
+    Verified e2e: upload demo source → auto-fetched WAC Hapke → run completed with RMSE 0.186px,
+    2789/2797 inliers, 99.7% ratio, 89.5% overlap, 97.7/100 similarity, recovered rot 2.00°/scale 0.9524×;
+    outcome "Diagnostic solution · GeoTIFF blocked" (context-only reference → honest export block).
 - **Release-gate deliberate-failure matrix** (DONE, 6/6 pass) — `backend/tests/test_deliberate_failures.py`:
   known rotation+scale recovery; no-overlap → honest failure; repeated terrain → not force-locked;
   severe shadow → honest failure; global geographic reference → export 403; unknown product → 404.

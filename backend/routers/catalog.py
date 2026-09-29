@@ -73,6 +73,16 @@ def match_footprints(latitude,longitude):
         rows.append(dict(item=item,contains=True,distance_deg=round(distance,3),scientific_pixel_coverage_verified=False))
     return sorted(rows,key=lambda x:x['distance_deg'])
 
+def default_matches():
+    # No coordinates supplied: rank curated products by footprint coverage (largest first)
+    # so the widest-coverage lunar reference is chosen as the best default match.
+    rows=[]
+    for item in curated_catalog():
+        bounds=item['footprint']['bounds']
+        area=abs(bounds['east']-bounds['west'])*abs(bounds['north']-bounds['south'])
+        rows.append(dict(item=item,contains=True,distance_deg=None,coverage_area=area,scientific_pixel_coverage_verified=False))
+    return sorted(rows,key=lambda x:-x['coverage_area'])
+
 @router.get('/search')
 async def search(latitude:float=Query(...,ge=-90,le=90),longitude:float=Query(...,ge=-180,le=180)):
     if not math.isfinite(latitude+longitude):
@@ -80,11 +90,16 @@ async def search(latitude:float=Query(...,ge=-90,le=90),longitude:float=Query(..
     return match_footprints(latitude,longitude)
 
 @router.post('/auto-reference',response_model=ReferenceRecord)
-async def auto_reference(latitude:float=Query(...,ge=-90,le=90),longitude:float=Query(...,ge=-180,le=180),prefer_cache:bool=Query(True)):
-    # LROC -> automatic coordinate match -> persistent cache -> reuse across sessions.
-    if not math.isfinite(latitude+longitude):
-        raise HTTPException(422,'Coordinates must be finite.')
-    matches=match_footprints(latitude,longitude)
+async def auto_reference(latitude:float|None=Query(None,ge=-90,le=90),longitude:float|None=Query(None,ge=-180,le=180),prefer_cache:bool=Query(True)):
+    # LROC -> automatic match (by coordinate, or best coverage when omitted) -> persistent cache -> reuse.
+    if (latitude is None)!=(longitude is None):
+        raise HTTPException(422,'Provide both latitude and longitude, or neither for the best-coverage reference.')
+    if latitude is None:
+        matches=default_matches()
+    else:
+        if not math.isfinite(latitude+longitude):
+            raise HTTPException(422,'Coordinates must be finite.')
+        matches=match_footprints(latitude,longitude)
     if not matches:
         raise HTTPException(404,'No curated LROC reference covers this coordinate. Upload a reference product instead; nothing was substituted.')
     if prefer_cache:
@@ -96,9 +111,10 @@ async def auto_reference(latitude:float=Query(...,ge=-90,le=90),longitude:float=
     errors=[]
     for match in matches:
         item=match['item']; path=DATA_ROOT/'references'/f'{uuid.uuid4()}.png'
+        provenance_where=f"({latitude:.4f}, {longitude:.4f})" if latitude is not None else 'best-coverage default (no coordinate supplied)'
         try:
             await asyncio.to_thread(fetch_context,item,path)
-            result=await store_reference(path,item['title'],1,f"Auto-fetched LROC context for ({latitude:.4f}, {longitude:.4f}); {item['image_url']}; retrieved {datetime.now(timezone.utc).isoformat()}",'context-only')
+            result=await store_reference(path,item['title'],1,f"Auto-fetched LROC context for {provenance_where}; {item['image_url']}; retrieved {datetime.now(timezone.utc).isoformat()}",'context-only')
             await db.references.update_one({'id':result.id},{'$set':{'product_id':item['id']}})
             row=result.model_dump(); row.update(from_cache=False,matched_product_id=item['id'],matched_product_title=item['title'],match_distance_deg=match['distance_deg'])
             return ReferenceRecord(**row)
