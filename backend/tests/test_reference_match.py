@@ -14,7 +14,8 @@ import numpy as np
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from mongomock_motor import AsyncMongoMockClient
+# Test-only dependency; skip cleanly where it is not installed.
+AsyncMongoMockClient = pytest.importorskip('mongomock_motor').AsyncMongoMockClient
 from lib.storage import sha256
 from routers import catalog
 
