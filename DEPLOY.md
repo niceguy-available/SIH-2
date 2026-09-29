@@ -1,5 +1,7 @@
 # Self-hosting Moon Match Points
 
+> Deploying on Netlify? See [NETLIFY.md](NETLIFY.md): website on Netlify, backend on Render, database on MongoDB Atlas.
+
 The whole stack (MongoDB, FastAPI backend, React frontend behind nginx) runs
 with Docker Compose. No Emergent account or key is needed: without
 `EMERGENT_LLM_KEY` the backend stores objects on local disk (`STORAGE_BACKEND=local`).

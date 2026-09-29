@@ -1,0 +1,43 @@
+# Render Blueprint for the backend API (the frontend is on Netlify; see NETLIFY.md).
+# Render dashboard > New > Blueprint > pick this repo. It asks for the values marked sync: false.
+services:
+  - type: web
+    name: moon-match-points-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /api/
+    envVars:
+      - key: MONGO_URL          # MongoDB Atlas connection string (mongodb+srv://...)
+        sync: false
+      - key: CORS_ORIGINS       # Your Netlify URL, e.g. https://moon-match-points.netlify.app
+        sync: false
+      - key: DB_NAME
+        value: moon_match_points
+      - key: APP_MODE
+        value: single_operator
+      # Free instances have no persistent disk; keep stored objects in MongoDB.
+      - key: STORAGE_BACKEND
+        value: gridfs
+      - key: DATA_ROOT
+        value: /data
+      # Sized for a 512 MB free instance.
+      - key: MAX_UPLOAD_MB
+        value: "64"
+      - key: MAX_RASTER_PIXELS
+        value: "60000000"
+      - key: MAX_DECODED_MB
+        value: "384"
+      - key: MAX_ANALYSIS_DIMENSION
+        value: "1536"
+      - key: MAX_JOB_SECONDS
+        value: "300"
+      - key: MAX_ACTIVE_JOBS
+        value: "1"
+      - key: MAX_QUEUED_JOBS
+        value: "2"
+      - key: MAX_LOCAL_CACHE_MB
+        value: "2000"
+      - key: BASELINE_COMMIT
+        value: render

@@ -13,4 +13,5 @@ COPY docker-entrypoint.sh .
 ENV DATA_ROOT=/data
 EXPOSE 8001
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]
-CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001"]
+# Hosts such as Render pass the port in $PORT.
+CMD ["sh", "-c", "exec uvicorn server:app --host 0.0.0.0 --port ${PORT:-8001}"]
