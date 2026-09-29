@@ -1,6 +1,7 @@
 import asyncio
 import json
 import math
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +15,7 @@ from lib.config import DATA_ROOT
 from lib.raster import load_analysis, RegistrationError
 from lib.storage import put_file, sha256, restore_file
 from lib.uploads import save_upload
+from lib.reference_match import features_from_path, rank_references, MIN_CONFIDENT_INLIERS
 from models.registration import ReferenceRecord
 
 router = APIRouter(prefix='/catalog',tags=['catalog'])
@@ -89,6 +91,11 @@ async def search(latitude:float=Query(...,ge=-90,le=90),longitude:float=Query(..
         raise HTTPException(422,'Coordinates must be finite.')
     return match_footprints(latitude,longitude)
 
+def selection_note(latitude,longitude,match,count):
+    if latitude is None:
+        return f"No coordinates or source image supplied: '{match['item']['title']}' chosen by largest footprint among {count} curated product(s). Use /catalog/auto-reference/match with the source image for content-based selection."
+    return f"'{match['item']['title']}' footprint contains ({latitude:.4f}, {longitude:.4f}); {match['distance_deg']} deg from its centre; {count} covering product(s)."
+
 @router.post('/auto-reference',response_model=ReferenceRecord)
 async def auto_reference(latitude:float|None=Query(None,ge=-90,le=90),longitude:float|None=Query(None,ge=-180,le=180),prefer_cache:bool=Query(True)):
     # LROC -> automatic match (by coordinate, or best coverage when omitted) -> persistent cache -> reuse.
@@ -107,6 +114,7 @@ async def auto_reference(latitude:float|None=Query(None,ge=-90,le=90),longitude:
             cached=await db.references.find_one({'product_id':match['item']['id'],'is_deleted':False},{'_id':0,'path':0,'manifest':0},sort=[('created_at',-1)])
             if cached:
                 cached.update(status='cached-context-only',from_cache=True,matched_product_id=match['item']['id'],matched_product_title=match['item']['title'],match_distance_deg=match['distance_deg'])
+                cached['diagnostics']=[selection_note(latitude,longitude,match,len(matches)),'Reused the cached copy; no new LROC request.']
                 return ReferenceRecord(**cached)
     errors=[]
     for match in matches:
@@ -117,11 +125,98 @@ async def auto_reference(latitude:float|None=Query(None,ge=-90,le=90),longitude:
             result=await store_reference(path,item['title'],1,f"Auto-fetched LROC context for {provenance_where}; {item['image_url']}; retrieved {datetime.now(timezone.utc).isoformat()}",'context-only')
             await db.references.update_one({'id':result.id},{'$set':{'product_id':item['id']}})
             row=result.model_dump(); row.update(from_cache=False,matched_product_id=item['id'],matched_product_title=item['title'],match_distance_deg=match['distance_deg'])
+            row['diagnostics']=[selection_note(latitude,longitude,match,len(matches)),f"Fetched from {item['image_url']} and cached."]+[f'Earlier candidate failed: {e}' for e in errors]
             return ReferenceRecord(**row)
         except Exception as exc:
             path.unlink(missing_ok=True)
             errors.append(f"{item['id']}: {exc}")
     raise HTTPException(503,'LROC retrieval failed for every matching product; no substitute image was used. '+' | '.join(errors[:2]))
+
+FETCH_RETRY_SECONDS=600
+_fetch_failures={}
+
+async def ensure_curated_cached(items,diagnostics):
+    """Download curated LROC products that are not yet in the reference cache (once)."""
+    for item in items:
+        if await db.references.find_one({'product_id':item['id'],'is_deleted':False},{'_id':1}):
+            continue
+        # Do not stall every upload on a provider that just failed.
+        if time.monotonic()-_fetch_failures.get(item['id'],-FETCH_RETRY_SECONDS)<FETCH_RETRY_SECONDS:
+            diagnostics.append(f"LROC product '{item['title']}' skipped: fetch failed recently; retrying after {FETCH_RETRY_SECONDS//60} min.")
+            continue
+        path=DATA_ROOT/'references'/f'{uuid.uuid4()}.png'
+        try:
+            await asyncio.to_thread(fetch_context,item,path)
+            result=await store_reference(path,item['title'],1,f"Auto-fetched LROC context for content matching; {item['image_url']}; retrieved {datetime.now(timezone.utc).isoformat()}",'context-only')
+            await db.references.update_one({'id':result.id},{'$set':{'product_id':item['id']}})
+            diagnostics.append(f"Fetched and cached LROC product '{item['title']}'.")
+        except Exception as exc:
+            path.unlink(missing_ok=True)
+            _fetch_failures[item['id']]=time.monotonic()
+            diagnostics.append(f"LROC product '{item['title']}' could not be fetched ({type(exc).__name__}); it was not considered.")
+
+async def match_candidates(product_ids,diagnostics):
+    """Every cached reference, newest first, de-duplicated by checksum.
+
+    product_ids=None keeps all references; otherwise curated LROC references are
+    limited to those product ids while operator uploads are always considered.
+    """
+    rows=await db.references.find({'is_deleted':False},{'_id':0}).sort('created_at',-1).to_list(500)
+    seen=set(); candidates=[]
+    for row in rows:
+        # Repeated fetches of one LROC product and re-uploads of one file are ranked once.
+        if row['sha256'] in seen or (row.get('product_id') and row['product_id'] in seen):
+            continue
+        if product_ids is not None and row.get('product_id') and row['product_id'] not in product_ids:
+            continue
+        try:
+            await resolve_reference(row['id'])
+        except HTTPException as exc:
+            diagnostics.append(f"Reference '{row['title']}' skipped: {exc.detail}")
+            continue
+        seen.update({row['sha256'],row.get('product_id')}-{None})
+        candidates.append(dict(id=row['id'],title=row['title'],product_id=row.get('product_id'),path=row['path'],band=row['metadata']['selected_band'],sha256=row['sha256']))
+    return candidates
+
+@router.post('/auto-reference/match',response_model=ReferenceRecord)
+async def auto_reference_match(source_image:UploadFile=File(...),source_band:int=Form(1,ge=1,le=32),latitude:float|None=Form(None,ge=-90,le=90),longitude:float|None=Form(None,ge=-180,le=180),fetch_missing:bool=Form(True)):
+    """Pick the cached/LROC reference whose content best matches the uploaded source."""
+    if (latitude is None)!=(longitude is None):
+        raise HTTPException(422,'Provide both latitude and longitude, or neither.')
+    if latitude is not None and not math.isfinite(latitude+longitude):
+        raise HTTPException(422,'Coordinates must be finite.')
+    diagnostics=[]
+    if latitude is None:
+        curated=curated_catalog(); product_ids=None
+        diagnostics.append('No coordinates supplied; every cached reference was ranked by image content.')
+    else:
+        curated=[m['item'] for m in match_footprints(latitude,longitude)]; product_ids={item['id'] for item in curated}
+        diagnostics.append(f"Coordinates ({latitude:.4f}, {longitude:.4f}) limit LROC candidates to {len(curated)} covering footprint(s); operator uploads are always considered.")
+    if fetch_missing:
+        await ensure_curated_cached(curated,diagnostics)
+    path=await save_upload(source_image)
+    try:
+        try:
+            source=await asyncio.to_thread(features_from_path,path,source_band)
+        except RegistrationError as exc:
+            raise HTTPException(422,str(exc))
+    finally:
+        path.unlink(missing_ok=True)
+    candidates=await match_candidates(product_ids,diagnostics)
+    if not candidates:
+        raise HTTPException(404,'No reference is cached and none could be fetched. Upload a reference product; nothing was substituted.')
+    ranking=await asyncio.to_thread(rank_references,source,candidates)
+    best=ranking[0]
+    confident=best['inliers']>=MIN_CONFIDENT_INLIERS
+    diagnostics.append(f"Source: {source['metadata']['width']}x{source['metadata']['height']} px, {len(source['points'])} SIFT keypoints; {len(ranking)} reference(s) ranked.")
+    for rank,row in enumerate(ranking[:5],1):
+        diagnostics.append(f"#{rank} {row['title']}: {row['inliers']} inliers / {row['matches']} mutual matches, score {row['score']:.1f}"+(f", scale {row['scale']:.3f}, rotation {row['rotation_deg']:.1f} deg" if row.get('scale') else '')+(f" ({row['note']})" if row.get('note') else ''))
+    if not confident:
+        diagnostics.append(f"Low confidence: best candidate has fewer than {MIN_CONFIDENT_INLIERS} consistent inliers. The source may not overlap any cached reference; upload or fetch a covering reference.")
+    record=await db.references.find_one({'id':best['id']},{'_id':0,'path':0,'manifest':0})
+    item=next((row for row in curated_catalog() if row['id']==record.get('product_id')),None)
+    record.update(from_cache=True,matched_product_id=record.get('product_id'),matched_product_title=item['title'] if item else record['title'],match_distance_deg=None,match_score=best['score'],match_inliers=best['inliers'],match_confident=confident,candidates=[{k:v for k,v in row.items() if k!='sha256'} for row in ranking],diagnostics=diagnostics)
+    return ReferenceRecord(**record)
 
 @router.get('/references',response_model=list[ReferenceRecord])
 async def list_references():
