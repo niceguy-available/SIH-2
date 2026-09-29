@@ -32,7 +32,7 @@ async def get_run(rid):
     return row
 
 @router.post('/run',response_model=RunRecord,status_code=202)
-async def run_registration(source_image:UploadFile=File(...),reference_id:str=Form(...),method:str=Form('auto'),refine:bool=Form(True),source_band:int=Form(1,ge=1,le=32),sensor:str=Form('optical')):
+async def run_registration(source_image:UploadFile=File(...),reference_id:str=Form(...),method:str=Form('auto'),refine:bool=Form(True),source_band:int=Form(1,ge=1,le=32),sensor:str=Form('optical'),reference_selection:str=Form('',max_length=4000)):
     if method not in {'auto','sift','orb'} or sensor not in {'optical','ohrc','tmc2','iirs'}:
         raise HTTPException(422,'Unsupported method or sensor label.')
     async with admission_lock:
@@ -43,6 +43,7 @@ async def run_registration(source_image:UploadFile=File(...),reference_id:str=Fo
         rid=str(uuid.uuid4())
         record=RunRecord(id=rid,status='queued',stage='Queued',source_filename=Path(source_image.filename or 'source').name[:200],reference_id=reference_id,reference_title=reference['title'],reference_status=reference['status'],reference_provenance=reference['provenance'],reference_sha256=reference['sha256'],reference_metadata=reference['metadata'],source_band=source_band,reference_band=reference['metadata']['selected_band'],sensor=sensor,requested_method=method,refine=refine,source_path=str(path),reference_path=reference['path'],is_deleted=False,report_url=f'/api/registration/{rid}/report',preview_url=f'/api/registration/{rid}/preview',source_url=f'/api/registration/{rid}/source',reference_url=f'/api/registration/{rid}/reference',geotiff_url=f'/api/registration/{rid}/geotiff')
         row=record.model_dump(mode='json')
+        row['diagnostics']=[f"Reference: {reference['title']} ({reference['status']})."]+([f'Reference selection: {reference_selection.strip()}'] if reference_selection.strip() else [])
         try:
             row['source_manifest']=await asyncio.to_thread(put_file,path,f'uploads/{rid}{path.suffix}','application/octet-stream')
             row['source_sha256']=row['source_manifest']['sha256']
