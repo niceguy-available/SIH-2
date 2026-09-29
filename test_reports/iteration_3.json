@@ -1,0 +1,32 @@
+{
+  "summary": "End-to-end verification of the automatic coordinate-matched LROC reference retrieval with persistent cache reuse. Backend: 7/7 pytest cases passed against the live public URL, covering (a) POST /api/catalog/auto-reference for Tycho coords returning a ReferenceRecord with matched_product_id/matched_product_title/from_cache/sha256, (b) persistent cache reuse across sessions (second call returns from_cache=true with the same id), (c) prefer_cache=false forces a fresh fetch (from_cache=false and new id), (d) invalid latitude=200 returns HTTP 422, (e) coordinates outside curated footprints return an honest 404 with no substitution, (f) GET /api/catalog/search still returns ranked matches (Tycho ranked first), and (g) GET /api/registration/capabilities contract (max_active_jobs=1, max_queued_jobs=2, max_upload_mib=128). Frontend: Loaded root workspace, verified the '02 / REFERENCE' Auto-match from LROC block, entered lat=-43.31 / long=-11.36, clicked auto-fetch-reference-btn; auto-reference-status displayed 'Reused cached Tycho Crater Reference · 0.00° from centre', reference-catalog-select was auto-populated, selected-reference-summary/title/preview rendered, and the sonner success toast 'Reused cached LROC reference (no new request)' appeared. No error banner.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "ReferenceControls option rendering", "issues": ["React hydration warning: a <span> element (data-ve-dynamic wrapper) is being rendered inside <option>, which HTML disallows. Non-fatal, but produces a console error on every page load. Consider suppressing the ve-dynamic wrapper for <option> children."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_auto_reference.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "(Optional) Suppress the dynamic <span> wrapper injected inside <option> in ReferenceControls to remove the React hydration console warning."
+  ],
+  "critical_code_review_comments": [
+    "catalog.py auto_reference: cache-hit path returns cached document with status forced to 'cached-context-only' regardless of original status field - fine for the current contract but note the cached row may keep an older provenance/sha256 (expected).",
+    "auto_reference fresh path writes product_id via a follow-up update_one after insert_one; consider setting product_id inside store_reference to avoid a race where a concurrent list-references call sees the row without product_id.",
+    "fetch_context uses httpx.stream with follow_redirects=False and 12s timeout - a slow LROC upstream can time out inside the API worker; consider bumping to 30s given the endpoint can already spend ~60s per the review note.",
+    "curated_catalog re-reads and mutates footprints.json on every request; small file so acceptable, but caching parsed rows at module import time would eliminate disk IO on hot paths."
+  ],
+  "updated_files": ["/app/backend/tests/test_auto_reference.py"],
+  "success_rate": {"backend": "100%", "frontend": "100%"},
+  "test_credentials": "N/A (single-operator prototype, no auth)",
+  "seed_data_creation": "prefer_cache=false test created one additional Tycho auto-reference record. This is expected behaviour and does not wipe existing cache.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Backend pytest lives at /app/backend/tests/test_auto_reference.py (auto-reference + search + capabilities). test_deliberate_failures.py was intentionally NOT rerun as instructed. Public URL from frontend/.env is used. Tycho product (lat -43.31 / long -11.36) is now cached; use prefer_cache=false to force fresh fetches. Do not run destructive resets on db.references.",
+  "rca of the issue": "No blocking issues found."
+}
