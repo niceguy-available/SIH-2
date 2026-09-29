@@ -1,0 +1,221 @@
+{
+  "id": "3e0ae7ac-cc00-43b0-b6e5-498ece259006",
+  "status": "failed",
+  "progress": 100,
+  "stage": "Registration rejected",
+  "source_filename": "trial chaand.webp",
+  "generated_at": "2026-09-29T10:50:51.716034+00:00",
+  "diagnostics": [
+    "SIFT: Ambiguous or insufficient mutual matches. No overlap, repeated terrain or cross-sensor differences may be responsible. | ORB: Ambiguous or insufficient mutual matches. No overlap, repeated terrain or cross-sensor differences may be responsible."
+  ],
+  "metrics": null,
+  "match_points": [],
+  "quality_gate": {
+    "passed": false,
+    "export_allowed": false,
+    "checks": [
+      {
+        "key": "inlier_count",
+        "label": "Inlier count",
+        "passed": false,
+        "value": null,
+        "limit": 20,
+        "unit": "points"
+      },
+      {
+        "key": "inlier_ratio",
+        "label": "Inlier ratio",
+        "passed": false,
+        "value": null,
+        "limit": 0.5,
+        "unit": "fraction"
+      },
+      {
+        "key": "rmse",
+        "label": "Fitting RMSE",
+        "passed": false,
+        "value": null,
+        "limit": 1.5,
+        "unit": "reference px"
+      },
+      {
+        "key": "overlap",
+        "label": "Valid overlap",
+        "passed": false,
+        "value": null,
+        "limit": 0.2,
+        "unit": "fraction"
+      },
+      {
+        "key": "spatial_coverage",
+        "label": "Spatial coverage",
+        "passed": false,
+        "value": null,
+        "limit": 0.25,
+        "unit": "fraction"
+      },
+      {
+        "key": "geometry",
+        "label": "Plausible local affine geometry",
+        "passed": false,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      },
+      {
+        "key": "sensor",
+        "label": "Supported preprocessed optical band",
+        "passed": true,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      },
+      {
+        "key": "source_geometry",
+        "label": "Source geometry supported",
+        "passed": true,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      },
+      {
+        "key": "georeferencing",
+        "label": "Valid local lunar georeferencing",
+        "passed": false,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      }
+    ],
+    "policy": "provisional-v1",
+    "independent_accuracy": "not evaluated"
+  },
+  "thresholds": {
+    "min_inliers": 20,
+    "min_inlier_ratio": 0.5,
+    "max_rmse": 1.5,
+    "min_overlap": 0.2,
+    "min_coverage": 0.25,
+    "max_checkpoint_rmse": 2.0
+  },
+  "reference_id": "54163d36-3497-4035-a55f-39c63015555c",
+  "reference_title": "WAC Hapke 7-Band Mosaic",
+  "reference_status": "context-only",
+  "reference_provenance": "Auto-fetched LROC context for (5.0000, 5.0000); https://lroc.im-ldi.com/data/support/popular_downloads/WAC_HAPKE_E000N1800_76P.png; retrieved 2026-09-29T10:34:56.512408+00:00",
+  "reference_sha256": "94402f90643257ce4d016a29e06b6d8006707ece4f4219e3ea28f2dfb00f0e13",
+  "reference_metadata": {
+    "width": 1200,
+    "height": 467,
+    "bands": 3,
+    "selected_band": 1,
+    "dtype": "uint8",
+    "driver": "PNG",
+    "crs": null,
+    "transform": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    "bounds": [
+      0.0,
+      467.0,
+      1200.0,
+      0.0
+    ],
+    "nodata": null,
+    "resolution": [
+      1.0,
+      1.0
+    ],
+    "lunar_georeferencing_valid": false,
+    "georeferencing_note": "Missing lunar CRS or affine georeferencing; diagnostic-only reference.",
+    "native_sensor_support": "unverified",
+    "analysis_width": 1200,
+    "analysis_height": 467,
+    "analysis_scale_x": 1.0,
+    "analysis_scale_y": 1.0,
+    "valid_fraction": 0.9324482512491078,
+    "normalization_percentiles": [
+      27.0,
+      240.0
+    ]
+  },
+  "source_band": 1,
+  "reference_band": 1,
+  "sensor": "optical",
+  "requested_method": "auto",
+  "refine": true,
+  "source_path": "/app/backend/data/uploads/tmpgxvb2pm_.webp",
+  "reference_path": "/app/backend/data/references/e0dfcb1a-2634-4287-9f1b-51a6b7f9c964.png",
+  "is_deleted": false,
+  "report_url": "/api/registration/3e0ae7ac-cc00-43b0-b6e5-498ece259006/report",
+  "preview_url": "/api/registration/3e0ae7ac-cc00-43b0-b6e5-498ece259006/preview",
+  "source_url": "/api/registration/3e0ae7ac-cc00-43b0-b6e5-498ece259006/source",
+  "reference_url": "/api/registration/3e0ae7ac-cc00-43b0-b6e5-498ece259006/reference",
+  "geotiff_url": "/api/registration/3e0ae7ac-cc00-43b0-b6e5-498ece259006/geotiff",
+  "source_manifest": {
+    "storage_path": "moon-match-points/uploads/3e0ae7ac-cc00-43b0-b6e5-498ece259006.webp",
+    "size": 151424,
+    "sha256": "ef8f45052f633bdc4e903c8d2dda1fec16ea7e93f14b7b5817f2775d849df900",
+    "content_type": "application/octet-stream",
+    "is_deleted": false
+  },
+  "source_sha256": "ef8f45052f633bdc4e903c8d2dda1fec16ea7e93f14b7b5817f2775d849df900",
+  "source_metadata": {
+    "width": 860,
+    "height": 860,
+    "bands": 3,
+    "selected_band": 1,
+    "dtype": "uint8",
+    "driver": "WEBP",
+    "crs": null,
+    "transform": [
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0
+    ],
+    "bounds": [
+      0.0,
+      860.0,
+      860.0,
+      0.0
+    ],
+    "nodata": null,
+    "resolution": [
+      1.0,
+      1.0
+    ],
+    "lunar_georeferencing_valid": false,
+    "georeferencing_note": "Missing lunar CRS or affine georeferencing; diagnostic-only reference.",
+    "native_sensor_support": "unverified",
+    "analysis_width": 860,
+    "analysis_height": 860,
+    "analysis_scale_x": 1.0,
+    "analysis_scale_y": 1.0,
+    "valid_fraction": 0.9155949161709032,
+    "normalization_percentiles": [
+      0.0,
+      210.0
+    ]
+  },
+  "source_width": 860,
+  "source_height": 860,
+  "reference_width": 1200,
+  "reference_height": 467,
+  "software": {
+    "engine": "mmp-hardened-1.0",
+    "baseline_commit": "3504c49776f0f70ee2f2088659574fd3ceddf6dc",
+    "opencv": "5.0.0",
+    "rasterio": "1.4.4",
+    "gdal": "3.10.3",
+    "numpy": "2.4.6",
+    "python": "3.11.16",
+    "ransac_seed": 2026
+  }
+}
