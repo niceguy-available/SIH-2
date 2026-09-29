@@ -1,0 +1,221 @@
+{
+  "id": "fd85242b-ffb7-42c7-ade4-106b96460217",
+  "status": "failed",
+  "progress": 100,
+  "stage": "Registration rejected",
+  "source_filename": "SYNTHETIC_src_independent.tif",
+  "generated_at": "2026-09-29T10:14:19.186585+00:00",
+  "diagnostics": [
+    "SIFT: Ambiguous or insufficient mutual matches. No overlap, repeated terrain or cross-sensor differences may be responsible. | ORB: Ambiguous or insufficient mutual matches. No overlap, repeated terrain or cross-sensor differences may be responsible."
+  ],
+  "metrics": null,
+  "match_points": [],
+  "quality_gate": {
+    "passed": false,
+    "export_allowed": false,
+    "checks": [
+      {
+        "key": "inlier_count",
+        "label": "Inlier count",
+        "passed": false,
+        "value": null,
+        "limit": 20,
+        "unit": "points"
+      },
+      {
+        "key": "inlier_ratio",
+        "label": "Inlier ratio",
+        "passed": false,
+        "value": null,
+        "limit": 0.5,
+        "unit": "fraction"
+      },
+      {
+        "key": "rmse",
+        "label": "Fitting RMSE",
+        "passed": false,
+        "value": null,
+        "limit": 1.5,
+        "unit": "reference px"
+      },
+      {
+        "key": "overlap",
+        "label": "Valid overlap",
+        "passed": false,
+        "value": null,
+        "limit": 0.2,
+        "unit": "fraction"
+      },
+      {
+        "key": "spatial_coverage",
+        "label": "Spatial coverage",
+        "passed": false,
+        "value": null,
+        "limit": 0.25,
+        "unit": "fraction"
+      },
+      {
+        "key": "geometry",
+        "label": "Plausible local affine geometry",
+        "passed": false,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      },
+      {
+        "key": "sensor",
+        "label": "Supported preprocessed optical band",
+        "passed": true,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      },
+      {
+        "key": "source_geometry",
+        "label": "Source geometry supported",
+        "passed": true,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      },
+      {
+        "key": "georeferencing",
+        "label": "Valid local lunar georeferencing",
+        "passed": true,
+        "value": null,
+        "limit": null,
+        "unit": ""
+      }
+    ],
+    "policy": "provisional-v1",
+    "independent_accuracy": "not evaluated"
+  },
+  "thresholds": {
+    "min_inliers": 20,
+    "min_inlier_ratio": 0.5,
+    "max_rmse": 1.5,
+    "min_overlap": 0.2,
+    "min_coverage": 0.25,
+    "max_checkpoint_rmse": 2.0
+  },
+  "reference_id": "76aca2f7-af6f-4f3e-b8e7-e563edf8cce7",
+  "reference_title": "SYNTHETIC_ref_lunar.tif",
+  "reference_status": "operator-upload",
+  "reference_provenance": "SYNTHETIC lunar reference for no-overlap negative test.",
+  "reference_sha256": "9e5c2fd036d97cf72e5be378ba04cdda91fac4f244c128e1a90d06362837ee39",
+  "reference_metadata": {
+    "width": 2000,
+    "height": 1800,
+    "bands": 1,
+    "selected_band": 1,
+    "dtype": "uint16",
+    "driver": "GTiff",
+    "crs": "PROJCS[\"unknown\",GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"unknown\",1737400,0]],PRIMEM[\"Reference meridian\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+    "transform": [
+      30.0,
+      0.0,
+      10000.0,
+      0.0,
+      -30.0,
+      10000.0
+    ],
+    "bounds": [
+      10000.0,
+      -44000.0,
+      70000.0,
+      10000.0
+    ],
+    "nodata": 0.0,
+    "resolution": [
+      30.0,
+      30.0
+    ],
+    "lunar_georeferencing_valid": true,
+    "georeferencing_note": "Local projected lunar grid, verified from file CRS and affine.",
+    "native_sensor_support": "unverified",
+    "analysis_width": 1800,
+    "analysis_height": 1620,
+    "analysis_scale_x": 0.9,
+    "analysis_scale_y": 0.9,
+    "valid_fraction": 0.8094842249657065,
+    "normalization_percentiles": [
+      234.0,
+      30679.0
+    ]
+  },
+  "source_band": 1,
+  "reference_band": 1,
+  "sensor": "optical",
+  "requested_method": "auto",
+  "refine": true,
+  "source_path": "/app/backend/data/uploads/tmpynfy16nm.tif",
+  "reference_path": "/app/backend/data/references/tmpvc6tjhtp.tif",
+  "is_deleted": false,
+  "report_url": "/api/registration/fd85242b-ffb7-42c7-ade4-106b96460217/report",
+  "preview_url": "/api/registration/fd85242b-ffb7-42c7-ade4-106b96460217/preview",
+  "source_url": "/api/registration/fd85242b-ffb7-42c7-ade4-106b96460217/source",
+  "reference_url": "/api/registration/fd85242b-ffb7-42c7-ade4-106b96460217/reference",
+  "geotiff_url": "/api/registration/fd85242b-ffb7-42c7-ade4-106b96460217/geotiff",
+  "source_manifest": {
+    "storage_path": "moon-match-points/uploads/fd85242b-ffb7-42c7-ade4-106b96460217.tif",
+    "size": 7206015,
+    "sha256": "6d206118d0d7ea48de0e3cc141f63a10168cdf587e92796e55becf22df62c590",
+    "content_type": "application/octet-stream",
+    "is_deleted": false
+  },
+  "source_sha256": "6d206118d0d7ea48de0e3cc141f63a10168cdf587e92796e55becf22df62c590",
+  "source_metadata": {
+    "width": 2000,
+    "height": 1800,
+    "bands": 1,
+    "selected_band": 1,
+    "dtype": "uint16",
+    "driver": "GTiff",
+    "crs": "PROJCS[\"unknown\",GEOGCS[\"unknown\",DATUM[\"unknown\",SPHEROID[\"unknown\",1737400,0]],PRIMEM[\"Reference meridian\",0],UNIT[\"degree\",0.0174532925199433,AUTHORITY[\"EPSG\",\"9122\"]]],PROJECTION[\"Equirectangular\"],PARAMETER[\"standard_parallel_1\",0],PARAMETER[\"central_meridian\",0],PARAMETER[\"false_easting\",0],PARAMETER[\"false_northing\",0],UNIT[\"metre\",1,AUTHORITY[\"EPSG\",\"9001\"]],AXIS[\"Easting\",EAST],AXIS[\"Northing\",NORTH]]",
+    "transform": [
+      30.0,
+      0.0,
+      10000.0,
+      0.0,
+      -30.0,
+      10000.0
+    ],
+    "bounds": [
+      10000.0,
+      -44000.0,
+      70000.0,
+      10000.0
+    ],
+    "nodata": 0.0,
+    "resolution": [
+      30.0,
+      30.0
+    ],
+    "lunar_georeferencing_valid": true,
+    "georeferencing_note": "Local projected lunar grid, verified from file CRS and affine.",
+    "native_sensor_support": "unverified",
+    "analysis_width": 1800,
+    "analysis_height": 1620,
+    "analysis_scale_x": 0.9,
+    "analysis_scale_y": 0.9,
+    "valid_fraction": 0.8133353909465021,
+    "normalization_percentiles": [
+      235.0,
+      30465.0
+    ]
+  },
+  "source_width": 2000,
+  "source_height": 1800,
+  "reference_width": 2000,
+  "reference_height": 1800,
+  "software": {
+    "engine": "mmp-hardened-1.0",
+    "baseline_commit": "3504c49776f0f70ee2f2088659574fd3ceddf6dc",
+    "opencv": "5.0.0",
+    "rasterio": "1.4.4",
+    "gdal": "3.10.3",
+    "numpy": "2.4.6",
+    "python": "3.11.16",
+    "ransac_seed": 2026
+  }
+}

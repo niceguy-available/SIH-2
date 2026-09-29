@@ -1,0 +1,5 @@
+[
+  {"source_x": 20.0, "source_y": 20.0, "reference_x": 25.0, "reference_y": 23.0},
+  {"source_x": 250.0, "source_y": 20.0, "reference_x": 255.0, "reference_y": 23.0},
+  {"source_x": 20.0, "source_y": 250.0, "reference_x": 25.0, "reference_y": 253.0}
+]

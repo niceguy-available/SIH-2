@@ -1,0 +1,11 @@
+import { NavLink } from 'react-router-dom';
+import { Moon, Download, RefreshCw } from 'lucide-react';
+import { Button } from './ui/button';
+import type { RegistrationResult } from '../lib/api';
+export const WorkspaceHeader=({run,onReset,onExport}:{run:RegistrationResult|null;onReset:()=>void;onExport:()=>void})=><header className="sticky top-0 z-40 border-b border-slate-800 px-4 py-3 md:px-6" data-testid="mission-telemetry-header">
+  <div className="mx-auto flex max-w-[1600px] flex-wrap items-center justify-between gap-3">
+    <div className="flex items-center gap-3"><div className="flex size-9 items-center justify-center rounded border border-amber-300/30 text-amber-200"><Moon size={20}/></div><div><p className="text-sm font-semibold" data-testid="product-name">MOON MATCH POINTS</p><p className="text-[10px] text-slate-500" data-testid="product-subtitle">Lunar image registration · research workstation</p></div></div>
+    <nav className="flex gap-1" data-testid="workspace-navigation">{[['/','Workspace'],['/references','References'],['/runs','Run history']].map(([path,label])=><NavLink key={path} to={path} end className={({isActive})=>`px-3 py-2 text-xs border-b-2 ${isActive?'border-cyan-300 text-cyan-200':'border-transparent text-slate-400 hover:text-white'}`} data-testid={`nav-${label.toLowerCase().replace(' ','-')}`}>{label}</NavLink>)}</nav>
+    <div className="flex items-center gap-3"><div className="telemetry-readout"><span>EXPORT GATE</span><strong data-testid="threshold-gate-readout">{run?(run.quality_gate.export_allowed?'PASS':'BLOCKED'):'NOT EVALUATED'}</strong></div><Button variant="outline" size="sm" disabled={!run} onClick={onExport} data-testid="export-report-btn"><Download size={14} className="mr-1.5"/>Diagnostics</Button><Button variant="ghost" size="icon" onClick={onReset} disabled={!!run&&['queued','running'].includes(run.status)} aria-label="Reset workspace" title="Reset workspace" data-testid="reset-session-btn"><RefreshCw size={15}/></Button></div>
+  </div>
+</header>;
